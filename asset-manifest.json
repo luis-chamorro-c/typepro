@@ -1,16 +1,16 @@
 {
   "files": {
     "main.css": "/typepro/static/css/main.ad26303b.css",
-    "main.js": "/typepro/static/js/main.fa8a92f8.js",
+    "main.js": "/typepro/static/js/main.489c2b59.js",
     "static/js/453.39161a2d.chunk.js": "/typepro/static/js/453.39161a2d.chunk.js",
     "static/media/cart.svg": "/typepro/static/media/cart.96e5ca1822b835d3e78aadfeb7f17444.svg",
     "index.html": "/typepro/index.html",
     "main.ad26303b.css.map": "/typepro/static/css/main.ad26303b.css.map",
-    "main.fa8a92f8.js.map": "/typepro/static/js/main.fa8a92f8.js.map",
+    "main.489c2b59.js.map": "/typepro/static/js/main.489c2b59.js.map",
     "453.39161a2d.chunk.js.map": "/typepro/static/js/453.39161a2d.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.ad26303b.css",
-    "static/js/main.fa8a92f8.js"
+    "static/js/main.489c2b59.js"
   ]
 }
