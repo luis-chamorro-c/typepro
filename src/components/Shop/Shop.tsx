@@ -6,11 +6,11 @@ interface ShopProps {
   isOpen: boolean;
   onClose: () => void;
   currentScore: number;
-  purchasedUpgradeIds: number[];
-  onPurchase: (upgradeId: number) => void;
+  purchasedUpgrades: number[][];
+  onPurchase: (upgradeId: number, upgradeLevel: number) => void;
 }
 
-const Shop: React.FC<ShopProps> = ({ isOpen, onClose, currentScore, purchasedUpgradeIds, onPurchase }) => {
+const Shop: React.FC<ShopProps> = ({ isOpen, onClose, currentScore, purchasedUpgrades, onPurchase }) => {
   if (!isOpen) return null;
 
   const canAfford = (cost: number) => currentScore >= cost;
@@ -34,11 +34,14 @@ const Shop: React.FC<ShopProps> = ({ isOpen, onClose, currentScore, purchasedUpg
         {/* Upgrades list */}
         <div className={styles.upgradeList}>
           {UPGRADES.map((upgrade) => {
-            const isPurchased = purchasedUpgradeIds.includes(upgrade.id);
-            const isLocked = !canPurchaseUpgrade(upgrade.id, purchasedUpgradeIds);
-            const affordable = canAfford(upgrade.cost);
+            const upgradeTuple = purchasedUpgrades.filter(u => u[0] === upgrade.id)[0];
+            const level = upgradeTuple?.[1] || 0;
+            const isPurchased = !!upgradeTuple && level === upgrade.costs.length
+            const isLocked = !canPurchaseUpgrade(upgrade, purchasedUpgrades);
+            const affordable = canAfford(upgrade.costs[level]);
             const prerequisites = getPrerequisiteNames(upgrade);
 
+            const upgradeString = 'I'.repeat(level + 1);
             return (
               <div
                 key={upgrade.id}
@@ -47,10 +50,10 @@ const Shop: React.FC<ShopProps> = ({ isOpen, onClose, currentScore, purchasedUpg
                 }`}
               >
                 <div className={styles.upgradeContent}>
-                  <h3 className={styles.upgradeName}>{upgrade.name}</h3>
+                  <h3 className={styles.upgradeName}>{upgrade.name} {upgradeString}</h3>
                   <p className={styles.upgradeDescription}>{upgrade.description}</p>
                   <div className={styles.upgradeCost}>
-                    Cost: {upgrade.cost.toLocaleString()} points
+                    {isPurchased ? 'Purchased' : `Cost: ${upgrade.costs[level].toLocaleString()} points`}
                   </div>
                   {isLocked && prerequisites.length > 0 && (
                     <div className={styles.requirements}>
@@ -66,7 +69,7 @@ const Shop: React.FC<ShopProps> = ({ isOpen, onClose, currentScore, purchasedUpg
                 ) : (
                   <button
                     className={`${styles.buyButton} ${!affordable ? styles.disabled : ''}`}
-                    onClick={() => onPurchase(upgrade.id)}
+                    onClick={() => onPurchase(upgrade.id, level)}
                     disabled={!affordable}
                   >
                     BUY

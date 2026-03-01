@@ -32,7 +32,7 @@ const TypingChallenge: React.FC<TypingChallengeProps> = ({
 
   // Shop state
   const [isShopOpen, setIsShopOpen] = useState(false);
-  const [purchasedUpgradeIds, setPurchasedUpgradeIds] = useState<number[]>([]);
+  const [purchasedUpgrades, setPurchasedUpgrades] = useState<number[][]>([]);
 
   // Cleanup threshold - only remove characters before this index
   const [cleanupThreshold, setCleanupThreshold] = useState(0);
@@ -53,7 +53,7 @@ const TypingChallenge: React.FC<TypingChallengeProps> = ({
   } = useTypingTest({
     text,
     targetScore,
-    purchasedUpgradeIds,
+    purchasedUpgrades,
     onComplete: handleComplete,
   });
 
@@ -154,20 +154,17 @@ const TypingChallenge: React.FC<TypingChallengeProps> = ({
     }
   };
 
-  const handlePurchase = (upgradeId: number) => {
+  const handlePurchase = (upgradeId: number, upgradeLevel: number) => {
     const upgrade = UPGRADES.find(u => u.id === upgradeId);
-    if (!upgrade || purchasedUpgradeIds.includes(upgradeId)) return;
-
-    // Check if player can afford it
-    if (score < upgrade.cost) return;
+    if (!upgrade || upgradeLevel === upgrade.costs.length || score < upgrade.costs[upgradeLevel]) return;
 
     // Deduct cost from score
-    adjustScore(-upgrade.cost);
+    adjustScore(-upgrade.costs[upgradeLevel]);
 
-    // Mark upgrade as purchased
-    setPurchasedUpgradeIds([...purchasedUpgradeIds, upgradeId]);
+    const updatedUpgrades = purchasedUpgrades.filter(u => u[0] !== upgradeId);
+    setPurchasedUpgrades([...updatedUpgrades, [upgradeId, upgradeLevel + 1]]);
 
-    console.log(`Purchased upgrade: ${upgrade.name} (ID: ${upgradeId}). Cost: ${upgrade.cost} points.`);
+    console.log(`Purchased upgrade: ${upgrade.name} (ID: ${upgradeId}). Cost: ${upgrade.costs[upgradeLevel]} points.`);
   };
 
   return (
@@ -211,7 +208,7 @@ const TypingChallenge: React.FC<TypingChallengeProps> = ({
         isOpen={isShopOpen}
         onClose={handleShopToggle}
         currentScore={score}
-        purchasedUpgradeIds={purchasedUpgradeIds}
+        purchasedUpgrades={purchasedUpgrades}
         onPurchase={handlePurchase}
       />
 

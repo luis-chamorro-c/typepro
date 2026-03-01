@@ -10,18 +10,15 @@ export type UpgradeEffectType =
   | 'combo_threshold'
   | 'combo_no_break';
 
-export interface UpgradeEffect {
-  type: UpgradeEffectType;
-  value: number;
-}
 
 // Upgrade types
 export interface Upgrade {
   id: number;
   name: string;
   description: string;
-  cost: number;
-  effect: UpgradeEffect;
+  costs: number[];
+  effect: UpgradeEffectType;
+  values: number[];
   requisiteIds: number[];
   isPurchased?: boolean;
 }

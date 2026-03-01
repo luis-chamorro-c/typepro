@@ -1,15 +1,16 @@
 import { useState, useCallback, useEffect } from 'react';
 import { isVowel, isConsonant, calculateWPM } from '../utils/calculations';
 import { Multipliers, ComboState } from '../types';
+import { BASE_SCORE, COMBO_NO_BREAK, COMBO_THRESHOLD, COMBO_UNLOCK, CONSONANT_MULTIPLIER, UPGRADES, VOWEL_MULTIPLIER } from '../data/upgrades';
 
 interface UseTypingTestProps {
   text: string;
   targetScore: number;
-  purchasedUpgradeIds: number[]; // Array of purchased upgrade IDs
+  purchasedUpgrades: number[][];
   onComplete: (finalScore: number, elapsedSeconds: number) => void;
 }
 
-export const useTypingTest = ({ text, targetScore, purchasedUpgradeIds, onComplete }: UseTypingTestProps) => {
+export const useTypingTest = ({ text, targetScore, purchasedUpgrades, onComplete }: UseTypingTestProps) => {
   const [currentCharIndex, setCurrentCharIndex] = useState(0);
   const [typedChars, setTypedChars] = useState<string[]>(new Array(text.length).fill(''));
   const [score, setScore] = useState(0);
@@ -52,36 +53,33 @@ export const useTypingTest = ({ text, targetScore, purchasedUpgradeIds, onComple
     const comboThresholds: { wpm: number; multiplier: number }[] = [];
     let noBreak = false;
 
-    purchasedUpgradeIds.forEach(id => {
-      switch (id) {
-        case 1: // Vowel Power (2x)
-          newMultipliers.vowel = 2;
+    purchasedUpgrades.forEach(u => {
+      const upgradeId = u[0];
+      const level = u[1];
+      const upgrade = UPGRADES.find(update => update.id === upgradeId);
+
+      if (!upgrade) {
+        return;
+      }
+
+      const value = upgrade.values[level - 1];
+      switch (upgrade?.effect) {
+        case VOWEL_MULTIPLIER: 
+          newMultipliers.vowel = value
           break;
-        case 2: // Consonant Boost (2x)
-          newMultipliers.consonant = 2;
+        case CONSONANT_MULTIPLIER: 
+          newMultipliers.consonant = value;
           break;
-        case 3: // Keyboard Upgrade I (base 1 → 3)
-          newMultipliers.base = 3;
+        case BASE_SCORE: 
+          newMultipliers.base = value;
           break;
-        case 4: // Vowel Mastery (3x)
-          newMultipliers.vowel = 3;
+        case COMBO_UNLOCK:
+          comboThresholds.push({ wpm: value, multiplier: value / 20 });
           break;
-        case 5: // Consonant Mastery (3x)
-          newMultipliers.consonant = 3;
-          break;
-        case 6: // Combo System (3x at 60 WPM)
-          comboThresholds.push({ wpm: 60, multiplier: 3 });
-          break;
-        case 10: // Keyboard Upgrade II (base 5 → 20)
-          newMultipliers.base = 20;
-          break;
-        case 7: // Combo Efficiency (3x at 40 WPM)
+        case COMBO_THRESHOLD: 
           comboThresholds.push({ wpm: 40, multiplier: 3 });
           break;
-        case 8: // Speed Demon (5x at 80 WPM)
-          comboThresholds.push({ wpm: 80, multiplier: 5 });
-          break;
-        case 9: // Unbreakable Focus (no combo break)
+        case COMBO_NO_BREAK:
           noBreak = true;
           break;
       }
@@ -93,7 +91,7 @@ export const useTypingTest = ({ text, targetScore, purchasedUpgradeIds, onComple
       availableThresholds: comboThresholds.sort((a, b) => b.multiplier - a.multiplier), // Highest multiplier first
       noBreak,
     }));
-  }, [purchasedUpgradeIds]);
+  }, [purchasedUpgrades]);
 
   const startTest = useCallback(() => {
     setIsActive(true);
@@ -293,7 +291,6 @@ export const useTypingTest = ({ text, targetScore, purchasedUpgradeIds, onComple
     handleKeyPress,
     adjustScore,
     expectedText: text,
-    // New: Multiplier and combo info for UI
     multipliers,
     comboState,
     currentWPM,
